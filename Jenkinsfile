@@ -1,43 +1,17 @@
 pipeline {
   agent any
-
-  tools {
-    jdk 'jdk-21'
-    maven 'maven-3.9'
-  }
+  tools { jdk 'jdk-21'; maven 'maven-3.9' }
 
   stages {
     stage('Checkout') {
       steps {
-        checkout scm
-        sh 'echo "Code checked out successfully"'
+        sh 'echo "Repo already checked out by Jenkins (Declarative: Checkout SCM)."'
       }
     }
-
-    stage('Build') {
-      steps {
-        sh 'mvn -version'
-        sh 'echo "Simulating build stage (no source code yet)"'
-      }
-    }
-
-    stage('Test') {
-      steps {
-        echo 'Running sample tests...'
-      }
-    }
-
-    stage('Deploy') {
-      steps {
-        echo 'Deployment stage (sample only)'
-      }
-    }
+    stage('Build')  { steps { sh 'mvn -version && echo "Build stage (demo)"' } }
+    stage('Test')   { steps { echo 'Running sample tests...' } }
+    stage('Deploy') { steps { echo 'Deployment stage (sample only)' } }
   }
 
-  post {
-    always {
-      echo "Build complete"
-      cleanWs()
-    }
-  }
+  post { always { cleanWs() } }
 }
