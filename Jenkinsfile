@@ -1,25 +1,20 @@
 pipeline {
   agent any
+  tools { jdk 'jdk-21'; maven 'maven-3.9' }
 
-  tools {
-    // Match these names exactly with what you configured in Jenkins
-    jdk 'jdk-21'
-    maven 'maven-3.9'
+  parameters {
+    booleanParam(name: 'RUN_MAVEN', defaultValue: false, description: 'Run Maven build/test (needs pom.xml)')
   }
 
   stages {
-
-    // ✅ Checkout code from your GitHub repository
     stage('Checkout') {
       steps {
-        deleteDir() // cleans workspace before checkout
-        git branch: 'master',
-            url: 'https://github.com/Requiem013/DEVOPS.git'  // <-- includes .git
+        deleteDir()
+        git branch: 'master', url: 'https://github.com/Requiem013/DEVOPS.git'
         echo '✅ Code checked out successfully from GitHub.'
       }
     }
 
-    // ✅ Verify environment (Java, Maven, Git)
     stage('Environment Check') {
       steps {
         bat 'echo JAVA_HOME=%JAVA_HOME%'
@@ -29,47 +24,36 @@ pipeline {
       }
     }
 
-    // ✅ Build Stage
-    stage('Build') {
+    stage('Build (demo)') {
+      when { expression { return !params.RUN_MAVEN } }
+      steps {
+        echo 'No pom.xml found — running demo-only pipeline.'
+      }
+    }
+
+    stage('Build with Maven') {
+      when { expression { return params.RUN_MAVEN } }
       steps {
         bat 'mvn -B -DskipTests=true clean compile'
-        echo '🏗️  Build completed successfully.'
       }
     }
 
-    // ✅ Test Stage
-    stage('Test') {
-      steps {
-        bat 'mvn -B test'
-      }
-      post {
-        always {
-          junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
-        }
-      }
+    stage('Test with Maven') {
+      when { expression { return params.RUN_MAVEN } }
+      steps { bat 'mvn -B test' }
+      post { always { junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml' } }
     }
 
-    // ✅ Package Stage
-    stage('Package') {
+    stage('Package with Maven') {
+      when { expression { return params.RUN_MAVEN } }
       steps {
         bat 'mvn -B -DskipTests package'
         archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-        echo '📦 Packaging complete.'
       }
     }
 
-    // ✅ Deploy (demo)
-    stage('Deploy') {
-      steps {
-        echo '🚀 Deployment stage (demo only, no real deploy).'
-      }
-    }
+    stage('Deploy (sample)') { steps { echo '🚀 Demo deploy step.' } }
   }
 
-  post {
-    always {
-      echo '🧹 Cleaning workspace and finishing build.'
-      cleanWs()
-    }
-  }
+  post { always { echo '🧹 Cleaning workspace'; cleanWs() } }
 }
