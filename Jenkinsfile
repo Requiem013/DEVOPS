@@ -1,3 +1,4 @@
+// 💚 Minimal, always-green Jenkinsfile (college demo)
 pipeline {
   agent any
 
