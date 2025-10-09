@@ -1,4 +1,3 @@
-// Minimal, always-green Jenkinsfile (good for demo)
 pipeline {
   agent any
 
@@ -15,6 +14,7 @@ pipeline {
         }
       }
     }
+
     stage('Done') {
       steps {
         echo '✅ Demo complete.'
